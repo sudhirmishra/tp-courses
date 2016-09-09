@@ -80,6 +80,24 @@ def getCourseForSemester(semester):
 Allows users to choose the semester and course to download
 """
 
+def get_all_video_urls():
+	video_urls = {}
+	"""
+	Scrape for semesters
+	"""
+	response = requests.get(hostname+semester_list_url)
+
+	soup = BeautifulSoup(response.text,"html.parser")
+
+	content = soup.find('div',{'id':'FolderView1_folder_view'})
+
+	href_semester = content.findAll('a')
+	href_semester = [x.text for x in href_semester]
+
+	for x in range(0,len(href_semester)):
+		
+		courses = getCourseForSemester(href_semester[x].replace(" ","+"))
+
 def main():
 	
 	"""

@@ -118,7 +118,7 @@ def get_all_video_urls():
 
 				document = {}
 				document['course_code'] = c
-				document['semester'] = x
+				document['semester'] = x.replace("TP Recording ","")
 				document['url'] = url['href']
 				document['name'] = url.text
 

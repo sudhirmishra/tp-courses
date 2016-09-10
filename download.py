@@ -2,12 +2,26 @@ import requests
 import urllib
 from bs4 import BeautifulSoup
 import os
-
+import pprint
 # Globals
-hostname = "http://www.bits-pilani.ac.in"
+hostname = "http://www.bits-pilani.ac.in/"
 semester_list_url = "TPClassRoomRecording/"
 tp_page_url = "/TPClassRoomRecording/index.aspx?Folder=G%3a%5cTPClassRoomRecording%5cVideo"
 downloads_path = "Downloaded/"	
+
+def parse_for_video_urls(url):
+	html_home = requests.get(url)
+	parser = BeautifulSoup(html_home.text,"html.parser")
+	video_urls = parser.findAll('a')
+	
+	return_urls = []
+	for href in video_urls:
+		if href['href'].endswith(".wmv"):
+			return_urls.append(href)
+			
+
+	return return_urls
+
 
 def download_course(url,sem):
 	
@@ -81,10 +95,11 @@ Allows users to choose the semester and course to download
 """
 
 def get_all_video_urls():
-	video_urls = {}
+	video_urls = []
 	"""
 	Scrape for semesters
 	"""
+
 	response = requests.get(hostname+semester_list_url)
 
 	soup = BeautifulSoup(response.text,"html.parser")
@@ -94,9 +109,31 @@ def get_all_video_urls():
 	href_semester = content.findAll('a')
 	href_semester = [x.text for x in href_semester]
 
-	for x in range(0,len(href_semester)):
-		
-		courses = getCourseForSemester(href_semester[x].replace(" ","+"))
+	for x in href_semester:				
+		courses = getCourseForSemester(x.replace(" ","+"))
+		for c in courses:
+			urls = parse_for_video_urls(hostname+tp_page_url+"%5c"+x+"%5c"+c)		
+			
+			for url in urls:
+
+				document = {}
+				document['course_code'] = c
+				document['semester'] = x
+				document['url'] = url['href']
+				document['name'] = url.text
+
+
+				video_urls.append(document)
+
+	import json
+	#json_string = json.dumps(video_urls)
+	with open('data.json', 'w') as fp:    	
+		json.dump(video_urls,fp)
+
+
+
+
+
 
 def main():
 	
@@ -144,4 +181,5 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_all_video_urls()
